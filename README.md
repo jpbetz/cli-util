@@ -8,7 +8,7 @@ commands, their options, flags and arguments.
 Example
 -------
 
-   -------------- example/src/main/java/jpbetz/cli/BullhornApplication.java --------------
+    -------------- example/src/main/java/jpbetz/cli/BullhornApplication.java --------------
     public class BullhornApplication {
       public static void main(String[] args) {
         SubCommandShell app = new SubCommandShell("bullhorn");
