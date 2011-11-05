@@ -43,7 +43,6 @@ Maven required.
 
 First, install cli-util into your maven repo.
 
-    $ cd <cli-install-dir>
     $ mvn install
 
 Next, open your .bashrc, .profile, or whatever you use and add a BULLHORN_HOME environment variable 
@@ -52,7 +51,7 @@ Lastly, Make sure the JAVA_HOME environment variable is pointing to a JDK.
 
 For bash style shells: 
 
-    export BULLHORN_HOME=<put-your-cli-util-path-here>/cli-util/example
+    export BULLHORN_HOME=<cli-util-path>/cli-util/example
     export PATH=$PATH:$BULLHORN_HOME/bin
 
 Build it:
