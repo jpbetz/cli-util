@@ -1,0 +1,5 @@
+#!/bin/bash
+java -cp $BULLHORN_HOME/target/bullhorn-1.0-SNAPSHOT-jar-with-dependencies.jar \
+  $BULLHORN_OPTS \
+  jpbetz.cli.BullhornApplication \
+  "$@"

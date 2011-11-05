@@ -1,4 +1,0 @@
-#!/bin/bash
-java -cp $CLIUTIL_HOME/target/cli-util-1.0-SNAPSHOT-jar-with-dependencies.jar:$CLIUTIL_HOME/target/test-classes \
-  jpbetz.cli.BullhornApplication \
-  "$@"

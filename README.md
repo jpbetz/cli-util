@@ -8,6 +8,7 @@ commands, their options, flags and arguments.
 Example
 -------
 
+   -------------- example/src/main/java/jpbetz/cli/BullhornApplication.java --------------
     public class BullhornApplication {
       public static void main(String[] args) {
         SubCommandShell app = new SubCommandShell("bullhorn");
@@ -15,7 +16,8 @@ Example
         app.invoke(args);
       }
     }
-  
+    
+    -------------- example/src/main/java/jpbetz/cli/Yell.java --------------
     @CliCommand(name="yell", description="Yell stuff")
     public class Yell implements Command {
       @CliArgument public static final Argument TEXT_ARG = ArgumentBuilder.newBuilder()
@@ -37,37 +39,45 @@ Example
 Try it out
 -----------
 
-Open your .bashrc, .profile, or whatever you use and add a CLIUTIL_HOME environment variable 
+Maven required.
+
+First, install cli-util into your maven repo.
+
+    $ cd <cli-install-dir>
+    $ mvn install
+
+Next, open your .bashrc, .profile, or whatever you use and add a BULLHORN_HOME environment variable 
 pointing to your cli-util working directory. Also, the cli bin to the PATH. 
 Lastly, Make sure the JAVA_HOME environment variable is pointing to a JDK.
 
 For bash style shells: 
 
-    export CLIUTIL_HOME=/Users/<username>/projects/cli-util
-    export PATH=$PATH:$CLIUTIL_HOME/sample-bin
+    export BULLHORN_HOME=<put-your-cli-util-path-here>/cli-util/example
+    export PATH=$PATH:$BULLHORN_HOME/bin
 
-Build stack:
+Build it:
 
-    $ cd $CLIUTIL_HOME
+    $ cd $BULLHORN_HOME
     $ mvn package
 
 Run the cli:
 
     $ bullhorn yell
 
-
 Classpath Setup Hints
 -------------------------------
 
-Each command line script (e.g. sample-bin/bullhorn) requires a classpath be setup.
-Setting up a classpath correctly is depends a lot on the particulars of the
+Command line interfaces should be run from a simple shell script.  For java, the shell script
+load a classpath.  Setting up a classpath correctly is depends a lot on the particulars of the
 project it is added to.  Some hints:
 
-1. Use an project home environment variable.  Traditionally this is a <project_name>_HOME variable.
-2. Make all locations in the classpath relative to the project home environment variable where possible.
-3. Autogenerate the classpath with your build tool.
+1. Require a "project home" environment variable.  Usually this is a PROJECT_NAME_HOME variable.
+2. Make locations in the classpath relative to the project home environment variable when possible.
+3. If the classpath is non-trivial or may change, autogenerate the classpath with your build tool.
 4. Pass arguments through to java app with "$@" (include the quotes)
-5. Provide a <project_name>_OPT environment variable that is passed in to the jvmargs that can be optionally set.
+5. Provide a PROJECT_NAME_OPT environment variable that is passed in to the jvmargs that can be optionally set.
+
+See sample-bin/bullhorn for an example bash shell script.
 
 ### Maven
 
@@ -104,8 +114,9 @@ pom.xml:
 
 shell script:
 
-    java -cp $CLIUTIL_HOME/target/cli-util-1.0-SNAPSHOT-jar-with-dependencies.jar \
-      $CLIUTIL_OPTS \
+    #!/bin/bash
+    java -cp $BULLHORN_HOME/target/bullhorn-1.0-SNAPSHOT-jar-with-dependencies.jar \
+      $BULLHORN_OPTS \
       jpbetz.cli.BullhornApplication \
       "$@"
 
@@ -117,20 +128,17 @@ be written to a plain file which is used in the shell script.
 build.gradle:
 
     task cliClasspath << {
-      new File("$projectDir/sample-bin/classpath").withWriter { out ->
-         
-        runtimeClasspath.each {File file ->
-            out.print file.absolutePath + ':'
-        }
+      new File("$projectDir/bin/classpath").withWriter { out ->
+        runtimeClasspath.each { File file -> out.print file.absolutePath + ':' }
       }
     }
-    
     compileJava.dependsOn cliClasspath
 
 shell script:
 
-    java -cp `cat $CLIUTIL_HOME/sample-bin/classpath` \
-      $CLIUTIL_OPTS \
+    #!/bin/bash
+    java -cp `cat $BULLHORN_HOME/bin/classpath` \
+      $BULLHORN_OPTS \
       jpbetz.cli.BullhornApplication \
       "$@"
 

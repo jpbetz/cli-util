@@ -1,0 +1,5 @@
+#!/bin/bash
+java -cp `cat $BULLHORN_HOME/bin/classpath` \
+  $BULLHORN_OPTS \
+  jpbetz.cli.BullhornApplication \
+  "$@"

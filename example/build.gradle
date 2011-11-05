@@ -1,0 +1,19 @@
+apply plugin: 'java'
+
+def localMavenRepo = 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
+repositories {
+    mavenCentral()
+    mavenRepo urls: localMavenRepo
+}
+
+dependencies {
+  compile 'jpbetz:cli-util:1.0-SNAPSHOT'
+}
+
+task cliClasspath << {
+  new File("$projectDir/bin/classpath").withWriter { out ->
+    runtimeClasspath.each { File file -> out.print file.absolutePath + ':' }
+  }
+}
+
+compileJava.dependsOn cliClasspath
