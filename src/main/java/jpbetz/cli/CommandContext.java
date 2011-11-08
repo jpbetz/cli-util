@@ -219,7 +219,7 @@ public class CommandContext {
 	@SuppressWarnings("unchecked") // marshall between unchecked apache cli methods
   public <T> List<T> getArgObjects(Argument arg) {
 		List<String> values = getArgValues(arg);
-		if(arg.getType() == null) return (List<T>)values;
+		if(arg.getType() == null) return (List<T>)values; // TODO: should throw exception if no type set
 		
 		List<T> results = new ArrayList<T>();
 		for(String value : values) {

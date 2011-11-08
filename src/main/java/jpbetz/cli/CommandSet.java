@@ -118,14 +118,10 @@ public class CommandSet {
 	    		if(arg.isVararg()) {
 	    			List<? extends Object> values = input.getArgObjects(arg);
 	    			arg.getField().set(instance, values);
-	    			System.out.println("set arg " + arg.getArgName() + " to values " + values);
 	    		} else {
 	    			Object value = input.getArgObject(arg);
 	    			if(value != null) {
 	    				arg.getField().set(instance, value);
-	    				System.out.println("set arg " + arg.getArgName() + " to value " + value);
-	    			} else {
-	    				System.out.println("did not set arg " + arg.getArgName());
 	    			}
 	    		}
 	    	}
@@ -134,22 +130,18 @@ public class CommandSet {
 	    		Field field = command.getOptionFields().get(option);
 	    		if(option.hasArg()) {
 	    			if(!input.hasOption(option)) {
-	    				System.out.println("did not set option " + option.getOpt());
 	    				continue;
 	    			}
 	    			if(option.hasValueSeparator()) {
 	    				Object[] values = input.getOptionValues(option);
 	    				field.set(instance, values);
-	    				System.out.println("set option " + option.getOpt() + " to values list " + values);
 	    			} else {
 	    				
 	    				Object value = input.getOptionObject(option);
 	    				field.set(instance, value);
-	    				System.out.println("set option " + option.getOpt() + " to value " + value + ", type=" + option.getType());
 	    			}
 	    		} else {
 	    			field.setBoolean(instance, input.hasOption(option));
-	    			System.out.println("set option " + option.getOpt() + " to " + input.hasOption(option));
 	    		}
 	    	}
 	    	
@@ -223,7 +215,7 @@ public class CommandSet {
     				builder.withArgName(argumentAnnotations.name());
     				builder.isVararg(argumentAnnotations.isVararg());
     				builder.isRequired(!argumentAnnotations.optional());
-    				builder.withType(field.getType());
+    				builder.withType(argumentAnnotations.isVararg() ? argumentAnnotations.type() : field.getType());
     				args.addArgument(builder.create());
     				
     				//Argument arg = (Argument)field.get(instance);

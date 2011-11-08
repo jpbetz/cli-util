@@ -11,4 +11,5 @@ public @interface Arg {
 	public String name();
 	public boolean optional() default false;
 	public boolean isVararg() default false;
+	public Class<?> type() default String.class;
 }

@@ -9,30 +9,22 @@ Example
 -------
 
     -------------- example/src/main/java/jpbetz/cli/BullhornApplication.java --------------
-    public class BullhornApplication {
-      public static void main(String[] args) {
-        SubCommandShell app = new SubCommandShell("bullhorn");
-        app.addSubCommands(Yell.class);
-        app.invoke(args);
-      }
+    public static void main(String[] args) {
+      CommandSet app = new CommandSet("bullhorn");
+      app.addSubCommands(Yell.class);
+      app.invoke(args);
     }
     
     -------------- example/src/main/java/jpbetz/cli/Yell.java --------------
-    @CliCommand(name="yell", description="Yell stuff")
-    public class Yell implements Command {
-      @CliArgument public static final Argument TEXT_ARG = ArgumentBuilder.newBuilder()
-        .isRequired(false).withArgName("<Text to yell>").create();
-      
-      @CliOption public static final Option  REPEAT_OPT = OptionBuilder
-        .withLongOpt("repeat").hasArg(true).withType(Number.class)
-        .withDescription("Number of times to yell the text").create("n");
-      
-      @Override
-      public void exec(CommandLineArgs commandLine) throws SubCommandError, Exception {
-        int yells = (commandLine.hasOption(REPEAT_OPT) ? (Number)commandLine.getOptionObject(REPEAT_OPT) : 1).intValue();
-        String text = commandLine.hasArg(TEXT_ARG) ? commandLine.getArgValue(TEXT_ARG) : "Hello World!";
-        for(int i = 0; i < yells; i++) System.out.println(text);
-      }
+    @Arg(name="Text to yell")
+    public String text;
+  
+    @Opt(opt="n", longOpt="repeat", hasArg=true, description="Number of times to yell the text")
+    public Number yells = 0;
+    
+    @Override
+    public void exec(CommandContext commandLine) throws CommandError, Exception {
+      for(int i = 0; i < yells.intValue(); i++) System.out.println(text);
     }
 
 
