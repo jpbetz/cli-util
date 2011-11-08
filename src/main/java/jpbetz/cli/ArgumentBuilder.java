@@ -1,16 +1,20 @@
 package jpbetz.cli;
 
+import java.lang.reflect.Field;
+
 public class ArgumentBuilder {
+	private Field _field;
 	private String _argName;
 	private Object _type;
 	private boolean _isRequired = true;
 	private boolean _isVararg = false;
 	
-	public ArgumentBuilder() {
+	public ArgumentBuilder(Field field) {
+		_field = field;
 	}
 	
-	public static ArgumentBuilder newBuilder() {
-		return new ArgumentBuilder();
+	public static ArgumentBuilder newBuilder(Field field) {
+		return new ArgumentBuilder(field);
 	}
 
 	public ArgumentBuilder withArgName(String argName) {
@@ -34,6 +38,6 @@ public class ArgumentBuilder {
 	}
 	
 	public Argument create() {
-		return new Argument(_argName, _type, _isRequired, _isVararg);
+		return new Argument(_field, _argName, _type, _isRequired, _isVararg);
 	}
 }

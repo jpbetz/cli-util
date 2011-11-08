@@ -1,5 +1,7 @@
 package jpbetz.cli;
 
+import java.lang.reflect.Field;
+
 /**
  * A command line argument.
  * 
@@ -11,21 +13,27 @@ public class Argument {
 	private final Object _type;
 	private final boolean _isRequired;
 	private final boolean _isVararg;
+	private Field _field;
 	
-	public Argument(Object type) {
-		this(null, type, true, false);
+	public Argument(Field field, Object type) {
+		this(field, null, type, true, false);
 	}
 	
-	public Argument(String argName) {
-		this(argName, String.class, true, false);
+	public Argument(Field field, String argName) {
+		this(field, argName, String.class, true, false);
 	}
 
-	public Argument(String argName, Object type, boolean isRequired, boolean isVararg) {
+	public Argument(Field field, String argName, Object type, boolean isRequired, boolean isVararg) {
+		_field = field;
 		_argName = argName;
 		_type = type;
 		_isRequired = isRequired;
 		_isVararg = isVararg;
 	}
+	
+	public Field getField() {
+	  return _field;
+  }
 	
 	public boolean hasArgName() {
 		return _argName != null;
