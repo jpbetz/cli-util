@@ -9,6 +9,7 @@ Example
 -------
 
 BullhornApplication.java
+
     ...
     public static void main(String[] args) {
       CommandSet app = new CommandSet("bullhorn");
@@ -18,6 +19,7 @@ BullhornApplication.java
     ...
     
 Yell.java
+
     ...
     @Arg(name="Text to yell")
     public String text;
