@@ -1,12 +1,18 @@
 package jpbetz.cli;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.lang.reflect.Field;
+import java.net.URL;
+import java.sql.Date;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.cli.CommandLine;
@@ -64,24 +70,46 @@ public class CommandSet {
 		String subCommand = args[0].toLowerCase().trim();
 		
 		if(subCommand.equals("help")) {
-			if (args.length == 1) {
-		  	printHelp();
-		  	return;
-		  }
-			String helpCommand = args[1].toLowerCase().trim();
-			
-			printSubCommandHelp(helpCommand);
-			return;
+			printHelp(args);
+      return;
 		}
 		
 		CommandSummary subCommandSummary = _subCommands.get(subCommand);
+		
 		if(subCommandSummary == null) {
 			printHelp("Command not found: " + subCommand);
-			return;
+		} else {
+			runSubCommand(subCommandSummary, Arrays.copyOfRange(args, 1, args.length));
 		}
-		
-		runSubCommand(subCommandSummary, Arrays.copyOfRange(args, 1, args.length));
 	}
+
+	public void printHelp() {
+  	System.out.println("usage: " + _applicationName + " <command> [<args>]");
+  	System.out.println();
+  	System.out.println("Available commands are:");
+  	Formatter subCommandFormatter = new Formatter(System.out);
+  	for(CommandSummary commandSummary : _subCommands.values()) {
+  		subCommandFormatter.format("  %1$-20.19s %2$2s\n", commandSummary.getName(), commandSummary.getDescription());
+  		//System.out.println("\t" + commandSummary.getName() + "\t\t" + commandSummary.getDescription());
+  	}
+  	System.out.println();
+  	System.out.println("See '" + _applicationName + " help <command>' for more information on a specific command.");
+  }
+
+	public void printHelp(String message) {
+  	System.out.println(message);
+  	printHelp();
+  }
+
+	private void printHelp(String[] args) {
+	  if (args.length == 1) {
+	  	printHelp();
+	  	return;
+	  } else {
+	  	printSubCommandHelp(args[1].toLowerCase().trim());
+	  	return;
+	  }
+  }
 	
 	private void printSubCommandHelp(String helpCommand) {
 		printSubCommandHelp(helpCommand, null);
@@ -105,6 +133,51 @@ public class CommandSet {
   	System.out.println();
   }
 	
+	private CommandSummary buildSubCommand(Class<? extends Command> commandClass) {
+  	try {
+      Command instance = commandClass.newInstance();
+      SubCommand cliCommand = commandClass.getAnnotation(SubCommand.class);
+      
+      if(cliCommand != null) {
+  	    Options options = new Options();
+  	    Arguments args = new Arguments();
+      
+  			Map<Option, Field> optionFields = new HashMap<Option, Field>();
+  
+      	for(Field field : commandClass.getDeclaredFields()) {
+      		field.setAccessible(true);
+    			Opt optionAnnotations = field.getAnnotation(Opt.class);
+    			Arg argumentAnnotations = field.getAnnotation(Arg.class);
+    			
+    			if(optionAnnotations != null && argumentAnnotations != null) {
+    				System.err.println("error: " + commandClass + " field " + field.getName() + " has both @Arg and @Opt annotations, only one is allowed per field.");
+    				return null;
+    			}
+    			
+    			if(optionAnnotations != null) {
+    				Option option = extractOption(field, optionAnnotations);
+    				options.addOption(option);
+    				optionFields.put(option, field);
+    			}
+    			
+    			if(argumentAnnotations != null) {
+    				Argument argument = extractArgument(field, argumentAnnotations);
+    				args.addArgument(argument);
+    			}
+    		}
+  
+  	    return new CommandSummary(instance, cliCommand.name(), cliCommand.description(), options, args, optionFields);
+      } else {
+      	System.err.println("warning: " + commandClass + " is missing @SubCommand annotation, ignoring.");
+      	return null;
+      }
+      
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
 	public void runSubCommand(CommandSummary command, String[] args) {
 		Options options = command.getOptions();
 		Arguments arguments = command.getArgs();
@@ -114,37 +187,8 @@ public class CommandSet {
 	    CommandContext input = new CommandContext(commandLine, arguments);
 	    try {
 	    	Command instance = command.getInstance();
-	    	for(Argument arg: arguments.getArguments()) {
-	    		if(arg.isVararg()) {
-	    			List<? extends Object> values = input.getArgObjects(arg);
-	    			arg.getField().set(instance, values);
-	    		} else {
-	    			Object value = input.getArgObject(arg);
-	    			if(value != null) {
-	    				arg.getField().set(instance, value);
-	    			}
-	    		}
-	    	}
-	    	
-	    	for(Option option: (Collection<Option>)options.getOptions()) {
-	    		Field field = command.getOptionFields().get(option);
-	    		if(option.hasArg()) {
-	    			if(!input.hasOption(option)) {
-	    				continue;
-	    			}
-	    			if(option.hasValueSeparator()) {
-	    				Object[] values = input.getOptionValues(option);
-	    				field.set(instance, values);
-	    			} else {
-	    				
-	    				Object value = input.getOptionObject(option);
-	    				field.set(instance, value);
-	    			}
-	    		} else {
-	    			field.setBoolean(instance, input.hasOption(option));
-	    		}
-	    	}
-	    	
+	    	injectArguments(arguments, input, instance);
+	    	injectOptions(command, options, input, instance);
 	      command.getInstance().exec(input);
 	    } catch (CommandError e) {
 	    	printSubCommandHelp(command.getName(), "error: " + e.getMessage());
@@ -158,80 +202,95 @@ public class CommandSet {
     	System.exit(1);
     }
 	}
-	
-	public void printHelp(String message) {
-		System.out.println(message);
-		printHelp();
-	}
-	
-	public void printHelp() {
-		System.out.println("usage: " + _applicationName + " <command> [<args>]");
-		System.out.println();
-		System.out.println("Available commands are:");
-		Formatter subCommandFormatter = new Formatter(System.out);
-		for(CommandSummary commandSummary : _subCommands.values()) {
-			subCommandFormatter.format("  %1$-20.19s %2$2s\n", commandSummary.getName(), commandSummary.getDescription());
-			//System.out.println("\t" + commandSummary.getName() + "\t\t" + commandSummary.getDescription());
-		}
-		System.out.println();
-		System.out.println("See '" + _applicationName + " help <command>' for more information on a specific command.");
-	}
-	
-	private CommandSummary buildSubCommand(Class<? extends Command> commandClass) {
-		try {
-	    Command instance = commandClass.newInstance();
-	    SubCommand cliCommand = commandClass.getAnnotation(SubCommand.class);
-	    
-	    if(cliCommand != null) {
-		    Options options = new Options();
-		    Arguments args = new Arguments();
-	    
-  			Map<Option, Field> optionFields = new HashMap<Option, Field>();
 
-	    	for(Field field : commandClass.getFields()) {
-    			Opt optionAnnotations = field.getAnnotation(Opt.class);
-    			if(optionAnnotations != null) {
-    				OptionBuilder builder = OptionBuilder.withDescription(optionAnnotations.description());
-    				builder.hasArg(optionAnnotations.hasArg());
-    				if(optionAnnotations.hasArg()) {
-    					builder.withArgName(optionAnnotations.argName());
-    					
-    				}
-    				if(!optionAnnotations.longOpt().equals("")) {
-    					builder.withLongOpt(optionAnnotations.longOpt());
-    				}
-    				builder.isRequired(optionAnnotations.required());
-    				builder.withType(field.getType());
-    				Option option = OptionBuilder.create(optionAnnotations.opt());
-    				options.addOption(option);
-    				optionFields.put(option, field);
-    			  //Option opt = (Option)field.get(instance);
-    				//options.addOption(opt);
-    			}
-    			
-    			Arg argumentAnnotations = field.getAnnotation(Arg.class);
-    			if(argumentAnnotations != null) {
-    				ArgumentBuilder builder = ArgumentBuilder.newBuilder(field);
-    				builder.withArgName(argumentAnnotations.name());
-    				builder.isVararg(argumentAnnotations.isVararg());
-    				builder.isRequired(!argumentAnnotations.optional());
-    				builder.withType(argumentAnnotations.isVararg() ? argumentAnnotations.type() : field.getType());
-    				args.addArgument(builder.create());
-    				
-    				//Argument arg = (Argument)field.get(instance);
-    				//args.addArgument(arg);
-    			}
-    		}
+	@SuppressWarnings("unchecked") // marshal from apache cli
+  private void injectOptions(CommandSummary command, Options options, CommandContext input, Command instance) throws IllegalAccessException {
+	  for(Option option: (Collection<Option>)options.getOptions()) {
+	  	Field field = command.getOptionFields().get(option);
+	  	if(option.hasArg()) {
+	  		if(!input.hasOption(option)) {
+	  			continue;
+	  		}
+	  		if(option.hasValueSeparator()) {
+	  			Object[] values = input.getOptionValues(option);
+	  			field.set(instance, values);
+	  		} else {
+	  			
+	  			Object value = input.getOptionObject(option);
+	  			field.set(instance, value);
+	  		}
+	  	} else {
+	  		field.setBoolean(instance, input.hasOption(option));
+	  	}
+	  }
+  }
 
-		    return new CommandSummary(instance, cliCommand.name(), cliCommand.description(), options, args, optionFields);
-	    } else {
-	    	System.err.println("warning: " + commandClass + " is missing CilCommand annotation, ignoring.");
-	    	return null;
-	    }
-	    
-    } catch (Exception e) {
-	    e.printStackTrace();
-	    return null;
-    }
+	private void injectArguments(Arguments arguments, CommandContext input,
+      Command instance) throws IllegalAccessException {
+	  for(Argument arg: arguments.getArguments()) {
+	  	if(arg.isVararg()) {
+	  		List<? extends Object> values = input.getArgObjects(arg);
+	  		arg.getField().set(instance, values);
+	  	} else {
+	  		Object value = input.getArgObject(arg);
+	  		if(value != null) {
+	  			arg.getField().set(instance, value);
+	  		}
+	  	}
+	  }
+  }
+	
+	private Argument extractArgument(Field field, Arg argumentAnnotations) {
+	  ArgumentBuilder builder = ArgumentBuilder.newBuilder(field);
+	  builder.withArgName(argumentAnnotations.name());
+	  builder.isVararg(argumentAnnotations.isVararg());
+	  builder.isRequired(!argumentAnnotations.optional());
+	  builder.withType(argumentAnnotations.isVararg() ? argumentAnnotations.type() : field.getType());
+	  Argument argument = builder.create();
+	  return argument;
+  }
+	
+	private static final Set<Class<?>> allowedTypes = new HashSet<Class<?>>();
+	
+	static {
+		allowedTypes.add(Number.class);
+		allowedTypes.add(File.class);
+		allowedTypes.add(FileInputStream.class);
+		allowedTypes.add(String.class);
+		allowedTypes.add(Date.class);
+		allowedTypes.add(Class.class);
+		allowedTypes.add(File[].class);
+		allowedTypes.add(Class.class);
+		allowedTypes.add(URL.class);
+		allowedTypes.add(boolean.class);
 	}
+
+	@SuppressWarnings("static-access") // marshal from apache commons cli
+  private Option extractOption(Field field, Opt optionAnnotations) {
+	  OptionBuilder builder = OptionBuilder.withDescription(optionAnnotations.description());
+	  
+	  boolean hasArg = !(field.getType().equals(boolean.class) || field.getType().equals(Boolean.class));
+	  builder.hasArg(hasArg);
+	  
+	  if(!allowedTypes.contains(field.getType())) {
+	  	System.out.println("warning: type " + field.getType() + " not allowed for field " + field.getName());
+	  }
+	  
+	  if(hasArg) {
+	  	if(optionAnnotations.argName().trim().equals("")) {
+	  		builder.withArgName(field.getType().getSimpleName().toLowerCase());
+	  	} else {
+	  		builder.withArgName(optionAnnotations.argName());
+	  	}
+	  }
+	  
+	  if(!optionAnnotations.longOpt().trim().equals("")) {
+	  	builder.withLongOpt(optionAnnotations.longOpt());
+	  }
+	  
+	  builder.isRequired(optionAnnotations.required());
+	  builder.withType(field.getType());
+	  Option option = OptionBuilder.create(optionAnnotations.opt());
+	  return option;
+  }
 }

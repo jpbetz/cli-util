@@ -113,10 +113,12 @@ public class CommandContext {
 		return _commandLine.getOptionObject(opt);
 	}
 	
-	public Object getOptionObject(String opt) {
+	@SuppressWarnings("deprecation")
+  public Object getOptionObject(String opt) {
 		return _commandLine.getOptionObject(opt);
 	}
 	
+	@SuppressWarnings("deprecation")
 	public Object getOptionObject(Option option) {
 		return _commandLine.getOptionObject(option.getOpt());
 	}

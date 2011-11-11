@@ -8,24 +8,28 @@ commands, their options, flags and arguments.
 Example
 -------
 
-    -------------- example/src/main/java/jpbetz/cli/BullhornApplication.java --------------
+BullhornApplication.java
+    ...
     public static void main(String[] args) {
       CommandSet app = new CommandSet("bullhorn");
       app.addSubCommands(Yell.class);
       app.invoke(args);
     }
+    ...
     
-    -------------- example/src/main/java/jpbetz/cli/Yell.java --------------
+Yell.java
+    ...
     @Arg(name="Text to yell")
     public String text;
   
-    @Opt(opt="n", longOpt="repeat", hasArg=true, description="Number of times to yell the text")
+    @Opt(opt="n", longOpt="repeat", description="Number of times to yell the text")
     public Number yells = 0;
     
     @Override
     public void exec(CommandContext commandLine) throws CommandError, Exception {
       for(int i = 0; i < yells.intValue(); i++) System.out.println(text);
     }
+    ...
 
 
 Try it out

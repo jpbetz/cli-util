@@ -11,7 +11,6 @@ public @interface Opt {
 	String opt();
 	String longOpt() default "";
 	String description();
-	boolean hasArg() default false;
 	String argName() default "";
 	boolean required() default false;
 }
