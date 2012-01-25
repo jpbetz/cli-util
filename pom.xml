@@ -1,10 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>jpbetz</groupId>
+  <groupId>com.github.jpbetz</groupId>
   <artifactId>cli-util</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
+  
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+  
   <name>cli-util</name>
   <description>
     cli-util is an extension of apache common's java command line interface (commons-cli) library. 
@@ -12,6 +19,28 @@
     options, flags and arguments.
   </description>
   <url>http://github.com/jpbetz/cli-util</url>
+  
+  <licenses>
+    <license>
+      <name>Apache 2.0 License</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:jpbetz/cli-util.git</connection>
+    <developerConnection>scm:git:git@github.com:jpbetz/cli-util.git</developerConnection>
+    <url>git@github.com:jpbetz/cli-util.git</url>
+  </scm>
+  
+  <developers>
+    <developer>
+      <id>jpbetz</id>
+      <name>Joe Betz</name>
+    </developer>
+  </developers>
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -26,19 +55,51 @@
     </dependency>
   </dependencies>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>1.5</source>
-                        <target>1.5</target>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <!--
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      -->
+    
+    </plugins>
+  </build>
+  
 </project>
