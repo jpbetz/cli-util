@@ -220,7 +220,10 @@ public class CommandSet {
 	  			field.set(instance, value);
 	  		}
 	  	} else {
-	  		field.setBoolean(instance, input.hasOption(option));
+        if (input.hasOption(option))
+        {
+          field.setBoolean(instance, input.hasOption(option));
+        }
 	  	}
 	  }
   }
