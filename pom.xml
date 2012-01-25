@@ -6,6 +6,11 @@
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>cli-util</name>
+  <description>
+    cli-util is an extension of apache common's java command line interface (commons-cli) library. 
+    It adds sub commands, more type safely and a declarative style for defining commands, their 
+    options, flags and arguments.
+  </description>
   <url>http://github.com/jpbetz/cli-util</url>
   <dependencies>
     <dependency>
