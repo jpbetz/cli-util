@@ -37,13 +37,15 @@ Yell.java
 Try it out
 -----------
 
-cli-util is hosted central maven repository, so all you need to do to use it is add this dependency:
+cli-util is hosted central maven repository, so all you need to do to use it in a maven (or ivy or gradle) project is add the dependency:
 
     <dependency>
       <groupId>com.github.jpbetz</groupId>
       <artifactId>cli-util</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0</version>
     </dependency>
+    
+(Alternative, one may set version to 1.1-SNAPSHOT to get the latest build snapshots)
 
 Next, open your .bashrc, .profile, or whatever you use and add a BULLHORN_HOME environment variable 
 pointing to your cli-util working directory. Also, the cli bin to the PATH. 
