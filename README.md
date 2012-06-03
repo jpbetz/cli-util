@@ -5,6 +5,9 @@ cli-util is an extension of apache common's java command line interface (commons
 library. It adds sub commands, more type safely and a declarative style for defining 
 commands, their options, flags and arguments.
 
+If you use Maven, SBT or Gradle, you can easily get the your CLI built and installed to
+be easily run from the command line at any time, detailed instructions below.
+
 Example
 -------
 
@@ -143,6 +146,7 @@ Build the assembly using sbt:
 
     $ sbt
     sbt> assembly
+    sbt> exit
 
 This compiles a "uber jar" in target named <project-name>-assembly-<version>.jar.
 
