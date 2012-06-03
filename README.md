@@ -20,18 +20,20 @@ BullhornApplication.java
     
 Yell.java
 
-    ...
-    @Arg(name="Text to yell")
-    public String text;
+
+    @SubCommand(name="yell", description="Yell stuff")
+    public class Yell implements Command {
+      @Arg(name="Text to yell")
+      public String text;
   
-    @Opt(opt="n", longOpt="repeat", description="Number of times to yell the text")
-    public Number yells = 0;
+      @Opt(opt="n", longOpt="repeat", description="Number of times to yell the text")
+      public Number yells = 0;
     
-    @Override
-    public void exec(CommandContext commandLine) throws CommandError, Exception {
-      for(int i = 0; i < yells.intValue(); i++) System.out.println(text);
+      @Override
+      public void exec(CommandContext commandLine) throws CommandError, Exception {
+        for(int i = 0; i < yells.intValue(); i++) System.out.println(text);
+      }
     }
-    ...
 
 
 Try it out
@@ -117,6 +119,37 @@ shell script:
 
     #!/bin/bash
     java -cp $BULLHORN_HOME/target/bullhorn-1.0-SNAPSHOT-jar-with-dependencies.jar \
+      $BULLHORN_OPTS \
+      jpbetz.cli.BullhornApplication \
+      "$@"
+
+### SBT
+
+Add the "sbt-assembly" plugin to your project and your build.sbt file.
+
+project/plugins.sbt:
+
+    resolvers += Resolver.url("artifactory", url("http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases"))(Resolver.ivyStylePatterns)
+
+    addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.8.0")
+
+build.sbt:
+
+    import AssemblyKeys._
+
+    assemblySettings
+
+Build the assembly using sbt:
+
+    $ sbt
+    sbt> assembly
+
+This compiles a "uber jar" in target named <project-name>-assembly-<version>.jar.
+
+shell script:
+
+    #!/bin/bash
+    java -cp `cat $BULLHORN_HOME/target/bullhorn-assembly-1.0-SNAPSHOT.jar` \
       $BULLHORN_OPTS \
       jpbetz.cli.BullhornApplication \
       "$@"
